@@ -1,0 +1,8 @@
+flask
+flask-sqlalchemy
+matplotlib
+pandas
+pyttsx3
+pyautogui
+speechrecognition
+pyaudio
