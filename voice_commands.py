@@ -1,33 +1,44 @@
-import speech_recognition as sr
-import pyautogui
-import pyttsx3
+import speech_recognition as sr  # Library for recognizing voice commands
+import pyautogui  # Library to automate keyboard presses
+import pyttsx3  # Text-to-speech engine for voice feedback
 
+# Initialize speech recognition and text-to-speech engine
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
 
 def speak(text):
+    """Converts text to speech for audio feedback."""
     engine.say(text)
     engine.runAndWait()
 
 def mute_action():
-    pyautogui.press("mute")
+    """Triggers the mute function via remote control."""
+    pyautogui.press("mute")  # Simulates pressing the mute button
     speak("Muted this scene!")
 
 def skip_action():
-    pyautogui.press("right")
+    """Skips the current scene by simulating a right arrow key press."""
+    pyautogui.press("right")  # Skips ahead
     speak("Skipped this scene!")
 
 def undo_action():
-    pyautogui.press("left")
+    """Rewinds or undoes the last action by pressing the left arrow key."""
+    pyautogui.press("left")  # Moves playback backward
     speak("Undo last action!")
 
+def pause_action():
+    """Pauses or resumes the video using the space bar."""
+    pyautogui.press("space")  # Pauses/Resumes video
+    speak("Toggling pause!")
+
 def listen_for_commands():
+    """Listens for user voice commands and executes corresponding actions."""
     with sr.Microphone() as source:
         print("Listening for voice command...")
-        audio = recognizer.listen(source)
+        audio = recognizer.listen(source)  # Capture audio input
     
     try:
-        command = recognizer.recognize_google(audio).lower()
+        command = recognizer.recognize_google(audio).lower()  # Convert speech to text
         print(f"Recognized command: {command}")
         
         if "mute this scene" in command:
@@ -36,6 +47,8 @@ def listen_for_commands():
             skip_action()
         elif "undo" in command:
             undo_action()
+        elif "pause" in command:
+            pause_action()
         else:
             print("Command not recognized.")
     except sr.UnknownValueError:
