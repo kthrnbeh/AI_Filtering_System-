@@ -16,18 +16,18 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 MUTE_KEYWORDS = [
     "fuck", "shit", "bitch", "damn", "cunt", "asshole", "bastard", "suck", 
     "jesus christ", "goddamn", "oh my god", "hell"
-]  # Swear words and profanities
-SKIP_KEYWORDS = ["violence", "blood", "scary"]  # Words that trigger scene skipping
+]  # List of words that trigger muting
+SKIP_KEYWORDS = ["violence", "blood", "scary"]  # List of words that trigger scene skipping
 
-# Initialize text-to-speech engine
+# Initialize text-to-speech engine for voice feedback
 engine = pyttsx3.init()
 
 def speak(text):
-    """Speaks the given text aloud."""
+    """Speaks the given text aloud using TTS engine."""
     engine.say(text)
     engine.runAndWait()
 
-# Toggle for enabling/disabling filtering
+# Global variable to enable/disable filtering
 FILTERING_ENABLED = True  
 
 def toggle_filtering():
@@ -61,7 +61,7 @@ def capture_screen():
             frame = np.array(screenshot)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
-            # Process the captured frame
+            # Process the captured frame to analyze subtitles
             process_frame(frame)
 
             if not FILTERING_ENABLED:
@@ -74,24 +74,24 @@ def process_frame(frame):
     if not FILTERING_ENABLED:
         return
 
-    # Extract subtitles (OCR on bottom part of the screen)
+    # Extract subtitles using OCR (bottom part of the screen)
     h, w, _ = frame.shape
-    subtitle_region = frame[int(h * 0.8):, :]
+    subtitle_region = frame[int(h * 0.8):, :]  # Focus on the bottom 20% of the screen
     subtitle_gray = cv2.cvtColor(subtitle_region, cv2.COLOR_BGR2GRAY)
     subtitle_gray = cv2.threshold(subtitle_gray, 128, 255, cv2.THRESH_BINARY)[1]
     subtitle_text = pytesseract.image_to_string(subtitle_gray, config="--psm 6").lower()
     print("Detected subtitles:", subtitle_text)
 
-    # Check for words that require muting
+    # Check subtitles for words that require muting
     for word in MUTE_KEYWORDS:
         if word in subtitle_text:
-            pyautogui.press("mute")
+            pyautogui.press("mute")  # Mutes the video/audio
             speak(f"Muted scene due to: {word}")
 
-    # Check for words that trigger scene skipping
+    # Check subtitles for words that trigger scene skipping
     for word in SKIP_KEYWORDS:
         if word in subtitle_text:
-            pyautogui.press("right")
+            pyautogui.press("right")  # Skips to the next scene
             speak(f"Skipped scene due to: {word}")
 
 def create_gui():
@@ -100,15 +100,19 @@ def create_gui():
     root.title("AI Filtering System")
     root.geometry("300x200")
     
+    # Label for the filtering options
     tk.Label(root, text="Select Filtering Options:", font=("Arial", 12)).pack(pady=10)
     
+    # Button to toggle filtering ON/OFF
     toggle_button = tk.Button(root, text="Toggle Filtering", font=("Arial", 10), command=toggle_filtering)
     toggle_button.pack(pady=5)
     
+    # Button to exit the application
     exit_button = tk.Button(root, text="Exit", font=("Arial", 10), command=root.quit)
     exit_button.pack(pady=5)
     
+    # Launch the GUI window
     root.mainloop()
 
 if __name__ == "__main__":
-    create_gui()
+    create_gui()  # Start the GUI when the script is run
