@@ -140,3 +140,65 @@ def listen_for_commands():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
+import mss
+import cv2
+import numpy as np
+import pygetwindow as gw
+import pyautogui
+import pytesseract
+
+# Configure OCR for subtitle detection
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Change path for Mac/Linux
+
+# Define keywords to mute or skip
+MUTE_KEYWORDS = ["swearword1", "swearword2"]  # Add words to mute
+SKIP_KEYWORDS = ["violence", "blood", "scary"]
+
+def capture_screen():
+    """Captures the streaming video window and processes it in real-time."""
+    with mss.mss() as sct:
+        while True:
+            # Detect active video window (adjust this for different streaming services)
+            window = gw.getWindowsWithTitle("Netflix")  # Change to other streaming services
+            if not window:
+                continue
+
+            x, y, width, height = window[0]._rect
+            screenshot = sct.grab({"top": y, "left": x, "width": width, "height": height})
+            frame = np.array(screenshot)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+
+            # Apply AI filtering
+            process_frame(frame)
+
+            # Show preview (optional)
+            cv2.imshow("AI Filtering Preview", frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):  # Press "q" to quit
+                break
+
+    cv2.destroyAllWindows()
+
+def process_frame(frame):
+    """Processes the video frame to detect objectionable content."""
+    # Extract subtitles (OCR on bottom part of the screen)
+    h, w, _ = frame.shape
+    subtitle_region = frame[int(h * 0.8):, :]  # Bottom 20% of the screen
+    subtitle_text = pytesseract.image_to_string(subtitle_region).lower()
+
+    print("Detected subtitles:", subtitle_text)
+
+    # Check for mute keywords
+    for word in MUTE_KEYWORDS:
+        if word in subtitle_text:
+            pyautogui.press("mute")
+            print(f"Muted scene due to: {word}")    
+
+    # Check for skip keywords
+    for word in SKIP_KEYWORDS:
+        if word in subtitle_text:
+            pyautogui.press("right")  # Simulates pressing the "Skip" button
+            print(f"Skipped scene due to: {word}")
+
+if __name__ == "__main__":
+    print("Starting AI filter for streaming services...")
+    capture_screen()

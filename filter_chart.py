@@ -6,35 +6,43 @@ import pyautogui
 import pytesseract
 import speech_recognition as sr
 import pyttsx3
+import tkinter as tk
+from tkinter import messagebox
 
 # Configure OCR for subtitle detection
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Change path for Mac/Linux
 
-# Define keywords to mute or skip
+# List of words to mute or skip
 MUTE_KEYWORDS = [
     "fuck", "shit", "bitch", "damn", "cunt", "asshole", "bastard", "suck", 
     "jesus christ", "goddamn", "oh my god", "hell"
-]  # Add words to mute
-SKIP_KEYWORDS = ["violence", "blood", "scary"]
+]  # Swear words and profanities
+SKIP_KEYWORDS = ["violence", "blood", "scary"]  # Words that trigger scene skipping
 
-# Initialize voice engine
+# Initialize text-to-speech engine
 engine = pyttsx3.init()
 
 def speak(text):
+    """Speaks the given text aloud."""
     engine.say(text)
     engine.runAndWait()
 
-FILTERING_ENABLED = True  # Global toggle
+# Toggle for enabling/disabling filtering
+FILTERING_ENABLED = True  
+
 def toggle_filtering():
+    """Toggles the filtering system on or off."""
     global FILTERING_ENABLED
     FILTERING_ENABLED = not FILTERING_ENABLED
     state = "enabled" if FILTERING_ENABLED else "disabled"
+    messagebox.showinfo("Filtering Status", f"Filtering is now {state}")
     print(f"Filtering is now {state}")
 
 def capture_screen():
-    """Captures the streaming video window and processes it in real-time."""
+    """Captures and processes the streaming video window in real-time."""
     with mss.mss() as sct:
         while True:
+            # Identify an active streaming service window
             streaming_services = ["Netflix", "YouTube", "Hulu", "Disney+", "Amazon Prime"]
             window = None
             for service in streaming_services:
@@ -47,11 +55,13 @@ def capture_screen():
                 print("No streaming window detected. Waiting...")
                 continue
 
+            # Capture screen area of detected window
             x, y, width, height = window[0]._rect
             screenshot = sct.grab({"top": y, "left": x, "width": width, "height": height})
             frame = np.array(screenshot)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
+            # Process the captured frame
             process_frame(frame)
 
             if not FILTERING_ENABLED:
@@ -60,10 +70,11 @@ def capture_screen():
     cv2.destroyAllWindows()
 
 def process_frame(frame):
-    """Processes the video frame to detect objectionable content."""
+    """Processes the frame to detect inappropriate content using subtitles."""
     if not FILTERING_ENABLED:
         return
 
+    # Extract subtitles (OCR on bottom part of the screen)
     h, w, _ = frame.shape
     subtitle_region = frame[int(h * 0.8):, :]
     subtitle_gray = cv2.cvtColor(subtitle_region, cv2.COLOR_BGR2GRAY)
@@ -71,53 +82,33 @@ def process_frame(frame):
     subtitle_text = pytesseract.image_to_string(subtitle_gray, config="--psm 6").lower()
     print("Detected subtitles:", subtitle_text)
 
+    # Check for words that require muting
     for word in MUTE_KEYWORDS:
         if word in subtitle_text:
             pyautogui.press("mute")
             speak(f"Muted scene due to: {word}")
 
+    # Check for words that trigger scene skipping
     for word in SKIP_KEYWORDS:
         if word in subtitle_text:
             pyautogui.press("right")
             speak(f"Skipped scene due to: {word}")
 
-def rewind_action():
-    pyautogui.press("left")
-    speak("Rewinding scene!")
-
-def pause_action():
-    pyautogui.press("space")
-    speak("Toggling pause!")
-
-def listen_for_commands():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        print("Listening for voice command...")
-        audio = recognizer.listen(source)
+def create_gui():
+    """Creates a simple GUI for enabling/disabling filtering."""
+    root = tk.Tk()
+    root.title("AI Filtering System")
+    root.geometry("300x200")
     
-    try:
-        command = recognizer.recognize_google(audio).lower()
-        print(f"Recognized command: {command}")
-        
-        if "mute this scene" in command:
-            pyautogui.press("mute")
-        elif "skip scene" in command:
-            pyautogui.press("right")
-        elif "undo" in command:
-            pyautogui.press("left")
-        elif "rewind" in command:
-            rewind_action()
-        elif "pause" in command:
-            pause_action()
-        elif "toggle filtering" in command:
-            toggle_filtering()
-        else:
-            print("Command not recognized.")
-    except sr.UnknownValueError:
-        print("Sorry, I couldn't understand that.")
-    except sr.RequestError:
-        print("Could not request results, check your internet connection.")
+    tk.Label(root, text="Select Filtering Options:", font=("Arial", 12)).pack(pady=10)
+    
+    toggle_button = tk.Button(root, text="Toggle Filtering", font=("Arial", 10), command=toggle_filtering)
+    toggle_button.pack(pady=5)
+    
+    exit_button = tk.Button(root, text="Exit", font=("Arial", 10), command=root.quit)
+    exit_button.pack(pady=5)
+    
+    root.mainloop()
 
 if __name__ == "__main__":
-    print("Starting AI filter for streaming services...")
-    capture_screen()
+    create_gui()
