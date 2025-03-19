@@ -1,8 +1,43 @@
+# Required Python Libraries for AI Filtering System
+
+# Flask - Web framework for building the admin dashboard
 flask
+
+# Flask-SQLAlchemy - Database management for storing user profiles & logs
 flask-sqlalchemy
+
+# Matplotlib - Used for generating filtering analytics graphs in the dashboard
 matplotlib
+
+# Pandas - Helps in data handling & analysis for user logs & reports
 pandas
+
+# Pyttsx3 - Text-to-speech engine for voice feedback (e.g., "Muted scene!")
 pyttsx3
+
+# PyAutoGUI - Allows AI to control video playback (mute, skip, rewind) via keyboard automation
 pyautogui
+
+# SpeechRecognition - Enables AI to understand user voice commands ("Mute this scene!")
 speechrecognition
+
+# PyAudio - Audio processing library required for speech recognition
 pyaudio
+
+# OpenCV - Used for real-time video frame processing & subtitle detection
+opencv-python
+
+# MSS - Enables screen capturing for processing subtitles on streaming platforms
+mss
+
+# Pytesseract - OCR engine to extract subtitles from video frames
+pytesseract
+
+# PyGetWindow - Helps in detecting and focusing on active streaming video windows
+pygetwindow
+
+# NumPy - Supports image processing and frame manipulation
+numpy
+
+# Tkinter - GUI toolkit for creating the local filtering toggle control
+tkinter
