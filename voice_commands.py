@@ -2,6 +2,11 @@ import speech_recognition as sr  # Library for speech recognition
 import pyautogui  # Library for automating key presses
 import pyttsx3  # Text-to-speech engine
 import pyaudio  # Audio processing
+import pytesseract
+
+# Set the Tesseract command path for Windows
+# This allows pytesseract to locate the installed Tesseract-OCR executable
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Initialize speech recognition and text-to-speech
 recognizer = sr.Recognizer()

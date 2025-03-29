@@ -1,4 +1,6 @@
 import os
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Only import PyAutoGUI if a display is available
 if "DISPLAY" in os.environ or os.name == "nt":
